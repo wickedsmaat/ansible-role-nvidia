@@ -1,0 +1,61 @@
+---
+- name: Scan for PCI Devices # Quadro P1000 || RTX A5000
+  ansible.builtin.shell:
+    cmd: lspci | command grep -Ei 'P1000|A5000'
+  register: gpu_info
+  failed_when: false
+  changed_when: false
+
+- name: Add Facts for later on
+  ansible.builtin.set_fact:
+    has_gpu: true
+  failed_when: false
+  changed_when: false
+  when: gpu_info.stdout is defined and gpu_info.stdout != ""
+
+- name: Ensure the Nouveau Driver is disabled
+  community.general.modprobe:
+    name: nouveau
+    state: absent
+  when: has_gpu
+
+- name: Blacklist Nouveau Driver
+  ansible.builtin.copy:
+    src: /home/ansible/files/plex/nvidia-installer-disable-nouveau.conf
+    dest: "{{ item.dest }}/nvidia-installer-disable-nouveau.conf"
+    owner: root
+    group: root
+    mode: '0644'
+  with_items:
+    - { dest: '/usr/lib/modprobe.d' }
+    - { dest: '/etc/modprobe.d' }
+  when: has_gpu
+
+- name: Ensure required software packages are installed
+  ansible.builtin.dnf:
+    name: "{{ item }}"
+    state: present
+  loop:
+    - kernel-devel
+    - kernel-headers
+    - kernel-modules
+    - kernel-modules-core
+    - kernel-modules-extra
+    - kernel-tools
+    - kernel-tools-libs
+    - kernel-tools-libs-devel
+    - libglvnd
+    - libglvnd-core-devel
+    - libglvnd-devel
+    - libpkgconf
+    - nvtop
+    - pkgconf
+    - pkgconf-pkg-config
+    - python3-pkgconfig
+    - xorg-x11-drv-nvidia
+    - xorg-x11-drv-nvidia-cuda
+    - xorg-x11-drv-nvidia-cuda-libs
+    - xorg-x11-drv-nvidia-devel
+    - xorg-x11-drv-nvidia-libs
+  tags: software
+  when: has_gpu
