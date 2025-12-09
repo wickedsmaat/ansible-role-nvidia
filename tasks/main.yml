@@ -1,11 +1,19 @@
 ---
+- name: Assert requirements are met
+  ansible.builtin.assert:
+    that:
+      - ansible_architecture == 'x86_64'
+      - ansible_os_family | lower == 'redhat'
+    fail_msg: "This role only supports x86_64 architecture on RedHat-based systems."
+  tags: requirements
+  
 - name: Scan for PCI Devices # Quadro P1000 || RTX A5000
   ansible.builtin.shell:
     cmd: lspci | command grep -Ei 'P1000|A5000'
   register: gpu_info
   failed_when: false
   changed_when: false
-
+  
 - name: Add Facts for later on
   ansible.builtin.set_fact:
     has_gpu: true
@@ -17,11 +25,12 @@
   community.general.modprobe:
     name: nouveau
     state: absent
-  when: has_gpu
+  when:
+    - has_gpu
 
 - name: Blacklist Nouveau Driver
   ansible.builtin.copy:
-    src: /home/ansible/files/plex/nvidia-installer-disable-nouveau.conf
+    src: files/nvidia-installer-disable-nouveau.conf
     dest: "{{ item.dest }}/nvidia-installer-disable-nouveau.conf"
     owner: root
     group: root
@@ -29,7 +38,8 @@
   with_items:
     - { dest: '/usr/lib/modprobe.d' }
     - { dest: '/etc/modprobe.d' }
-  when: has_gpu
+  when:
+    - has_gpu
 
 - name: Ensure required software packages are installed
   ansible.builtin.dnf:
@@ -57,5 +67,6 @@
     - xorg-x11-drv-nvidia-cuda-libs
     - xorg-x11-drv-nvidia-devel
     - xorg-x11-drv-nvidia-libs
+  when:
+    - has_gpu
   tags: software
-  when: has_gpu
