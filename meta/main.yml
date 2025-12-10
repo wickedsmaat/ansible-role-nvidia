@@ -6,10 +6,9 @@ galaxy_info:
   license: MIT
   min_ansible_version: 2.1
   galaxy_tags:
-    - 1.1.0
     - nvidia
     - cuda
-    - nvidia-drivers
+    - drivers
     - gpu
 dependencies:
   - thisguyshouldworkforus.rhel
