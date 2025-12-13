@@ -1,15 +1,23 @@
 ---
 galaxy_info:
-  author: thisguyshouldworkforus
+  author: Alexander Snyder
   description: Ansible role to install NVIDIA drivers and CUDA toolkit on RedHat-based x86_64 systems
-  company: "Hire This Guy, LLC."
+  company: ThisGuyShouldWorkFor.Us
   license: MIT
-  min_ansible_version: 2.1
+  min_ansible_version: "2.9"
+  platforms:
+    - name: EL
+      versions:
+        - "8"
+        - "9"
+        - "10"
   galaxy_tags:
-    - nvidia
-    - cuda
-    - drivers
-    - gpu
-dependencies:
-  - thisguyshouldworkforus.rhel
+    - tag1
+    - tag2
+    - tag4
+
+collections:
+  - community.general
+
+dependencies: []
 ...
